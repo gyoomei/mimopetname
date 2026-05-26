@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MiMoPetName — AI Pet Naming Advisor</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;600;700&family=Nunito:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{
+  --font:'Nunito',system-ui,sans-serif;--font-display:'Sora',system-ui,sans-serif;--font-mono:'JetBrains Mono',monospace;
+  --bg:#0a0812;--panel:#110f1a;--panel2:#1a1726;--panel3:#242030;
+  --text:#f2eef8;--muted:#9a90b0;--muted2:#605878;
+  --acc:#f472b6;--acc2:#ec4899;--violet:#a78bfa;--cyan:#67e8f9;--lime:#bef264;--amber:#fbbf24;--sky:#7dd3fc;
+  --good:#4ade80;--warn:#fbbf24;--bad:#f87171;
+  --line:rgba(255,255,255,.06);--line2:rgba(255,255,255,.1);
+  --glass:rgba(17,15,26,.84);--glass2:rgba(26,23,38,.72);
+  --shadow:0 8px 32px rgba(0,0,0,.5);--radius:14px;--radius-sm:8px;
+}
+[data-theme="light"]{
+  --bg:#faf7fb;--panel:#ffffff;--panel2:#f5f0f8;--panel3:#ebe4f0;
+  --text:#1a1520;--muted:#6b5e80;--muted2:#9a8ea8;
+  --acc:#d946a8;--acc2:#c02688;--violet:#7c3aed;--cyan:#06b6d4;--lime:#65a30d;--amber:#d97706;--sky:#0284c7;
+  --good:#16a34a;--warn:#d97706;--bad:#dc2626;
+  --line:rgba(0,0,0,.06);--line2:rgba(0,0,0,.1);
+  --glass:rgba(255,255,255,.9);--glass2:rgba(245,240,248,.85);
+  --shadow:0 8px 32px rgba(0,0,0,.05);
+}
+html{scroll-behavior:smooth}
+body{font-family:var(--font);background:var(--bg);color:var(--text);line-height:1.6;overflow-x:hidden;min-height:100vh}
+h1,h2,h3,h4{font-family:var(--font-display);font-weight:600;letter-spacing:-.02em}
+
+.atmos{position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.atmos .orb{position:absolute;border-radius:50%;filter:blur(80px);opacity:.18;animation:drift 22s ease-in-out infinite alternate}
+.orb.o1{width:400px;height:400px;background:radial-gradient(circle,var(--acc),transparent 70%);top:-8%;left:-8%}
+.orb.o2{width:350px;height:350px;background:radial-gradient(circle,var(--violet),transparent 70%);bottom:-8%;right:-8%;animation-delay:8s}
+.orb.o3{width:280px;height:280px;background:radial-gradient(circle,var(--cyan),transparent 70%);top:35%;left:50%;animation-delay:15s}
+@keyframes drift{0%{transform:translate(0,0) scale(1)}50%{transform:translate(25px,-18px) scale(1.05)}100%{transform:translate(-8px,30px) scale(.95)}}
+.particles{position:fixed;bottom:0;left:0;width:100%;height:100%;pointer-events:none;z-index:0;overflow:hidden}
+.particles span{position:absolute;bottom:-10px;width:4px;height:4px;border-radius:50%;opacity:.3;animation:rise 13s linear infinite}
+.particles span:nth-child(1){left:10%;background:var(--acc);animation-duration:11s}
+.particles span:nth-child(2){left:30%;background:var(--violet);animation-delay:3s;animation-duration:15s}
+.particles span:nth-child(3){left:50%;background:var(--cyan);animation-delay:5s;animation-duration:12s}
+.particles span:nth-child(4){left:70%;background:var(--lime);animation-delay:2s;animation-duration:14s}
+.particles span:nth-child(5){left:90%;background:var(--amber);animation-delay:6s;animation-duration:13s}
+@keyframes rise{0%{transform:translateY(0) scale(1);opacity:.3}50%{opacity:.12}100%{transform:translateY(-100vh) scale(0);opacity:0}}
+@media(prefers-reduced-motion:reduce){.atmos .orb,.particles span{animation:none!important}}
+
+.app{position:relative;z-index:1;max-width:1000px;margin:0 auto;padding:0 20px}
+nav{position:sticky;top:0;z-index:100;padding:14px 0;backdrop-filter:blur(20px) saturate(1.4);-webkit-backdrop-filter:blur(20px) saturate(1.4);border-bottom:1px solid var(--line)}
+nav .inner{display:flex;align-items:center;justify-content:space-between}
+.logo{font-family:var(--font-display);font-size:1.2rem;font-weight:700;color:var(--acc);display:flex;align-items:center;gap:8px}
+.nav-r{display:flex;gap:8px}
+.theme-btn,.lang-btn{background:var(--panel2);border:1px solid var(--line);border-radius:50%;width:36px;height:36px;display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:1rem;transition:.2s;color:var(--text)}
+.theme-btn:hover,.lang-btn:hover{border-color:var(--acc)}
+
+.hero{text-align:center;padding:44px 0 24px}
+.hero-badge{display:inline-flex;align-items:center;gap:6px;background:var(--glass);border:1px solid var(--line);border-radius:20px;padding:6px 16px;font-size:.78rem;color:var(--muted);margin-bottom:14px;backdrop-filter:blur(8px)}
+.hero-badge .dot{width:8px;height:8px;border-radius:50%;background:var(--acc);animation:pulse 2s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.4}}
+.hero h1{font-size:clamp(1.7rem,4.2vw,2.6rem);margin-bottom:10px;background:linear-gradient(135deg,var(--text),var(--acc),var(--violet));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.hero p{color:var(--muted);font-size:.95rem;max-width:480px;margin:0 auto}
+
+.card{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);padding:22px;backdrop-filter:blur(12px);margin-bottom:18px}
+.card h2{font-size:1.1rem;margin-bottom:12px;display:flex;align-items:center;gap:10px}
+.card h2 span{font-size:1.1rem}
+.form-group{margin-bottom:12px}
+.form-group label{display:block;font-size:.8rem;color:var(--muted);margin-bottom:5px;font-weight:600;text-transform:uppercase;letter-spacing:.04em}
+.form-group textarea,.form-group input[type="text"]{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px 14px;color:var(--text);font-family:var(--font);font-size:.92rem;transition:.2s;outline:none}
+.form-group textarea{min-height:70px;resize:vertical}
+.form-group textarea:focus,.form-group input:focus{border-color:var(--acc);box-shadow:0 0 0 3px rgba(244,114,182,.15)}
+.form-group .hint{font-size:.75rem;color:var(--muted2);margin-top:4px}
+
+.pet-pills,.style-pills{display:flex;flex-wrap:wrap;gap:8px}
+.pet-pill,.style-pill{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:7px 14px;font-size:.82rem;cursor:pointer;transition:.2s;color:var(--muted);font-family:var(--font);display:flex;align-items:center;gap:5px}
+.pet-pill:hover,.pet-pill.active,.style-pill:hover,.style-pill.active{border-color:var(--acc);color:var(--acc);background:rgba(244,114,182,.08)}
+
+.btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;padding:12px 28px;border-radius:var(--radius-sm);font-family:var(--font-display);font-weight:600;font-size:.95rem;cursor:pointer;transition:.25s;border:none}
+.btn-primary{background:linear-gradient(135deg,var(--acc),var(--acc2));color:#fff;box-shadow:0 4px 20px rgba(244,114,182,.3)}
+.btn-primary:hover{transform:translateY(-2px);box-shadow:0 6px 28px rgba(244,114,182,.4)}
+.btn-primary:disabled{opacity:.5;cursor:not-allowed;transform:none}
+.btn-secondary{background:var(--panel2);color:var(--text);border:1px solid var(--line)}
+.btn-secondary:hover{border-color:var(--acc);color:var(--acc)}
+.btn-sm{padding:8px 16px;font-size:.82rem}
+.btn-full{width:100%}
+
+.tabs{display:flex;gap:4px;margin-bottom:18px;background:var(--panel);border-radius:var(--radius-sm);padding:4px;border:1px solid var(--line)}
+.tab{flex:1;padding:10px;text-align:center;border-radius:6px;font-size:.85rem;font-weight:600;cursor:pointer;transition:.2s;color:var(--muted);font-family:var(--font-display)}
+.tab.active{background:var(--acc);color:#fff}
+.tab:not(.active):hover{color:var(--text);background:var(--panel2)}
+
+/* Name cards */
+.name-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px}
+.name-card{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius);padding:18px;transition:.25s;cursor:pointer;position:relative;overflow:hidden}
+.name-card:hover{border-color:var(--acc);transform:translateY(-2px);box-shadow:var(--shadow)}
+.name-card .name-title{font-family:var(--font-display);font-size:1.4rem;font-weight:700;margin-bottom:4px}
+.name-card .name-origin{font-size:.78rem;color:var(--muted);margin-bottom:8px;font-style:italic}
+.name-card .name-meaning{font-size:.88rem;margin-bottom:10px;line-height:1.5}
+.name-card .name-vibes{display:flex;flex-wrap:wrap;gap:5px}
+.vibe-tag{background:rgba(244,114,182,.08);border:1px solid rgba(244,114,182,.15);border-radius:14px;padding:3px 10px;font-size:.72rem;color:var(--acc)}
+.name-card .copy-hint{position:absolute;top:12px;right:12px;font-size:.7rem;color:var(--muted2);opacity:0;transition:.2s}
+.name-card:hover .copy-hint{opacity:1}
+
+/* Name cloud canvas */
+.cloud-wrap{display:flex;justify-content:center;margin:16px 0}
+
+/* Stats */
+.stats-row{display:grid;grid-template-columns:repeat(auto-fill,minmax(130px,1fr));gap:10px;margin-bottom:18px}
+.stat-pill{background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);padding:12px;text-align:center}
+.stat-pill .val{font-family:var(--font-display);font-size:1.3rem;font-weight:700;color:var(--acc)}
+.stat-pill .lbl{font-size:.75rem;color:var(--muted);margin-top:2px}
+
+/* Chat */
+.chat-box{background:var(--glass);border:1px solid var(--line);border-radius:var(--radius);backdrop-filter:blur(12px);overflow:hidden;margin-bottom:18px}
+.chat-messages{height:340px;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:10px}
+.chat-msg{max-width:85%;padding:10px 14px;border-radius:var(--radius-sm);font-size:.88rem;line-height:1.5}
+.chat-msg.user{align-self:flex-end;background:var(--acc);color:#fff;border-bottom-right-radius:4px}
+.chat-msg.bot{align-self:flex-start;background:var(--panel2);border:1px solid var(--line);border-bottom-left-radius:4px}
+.chat-msg.bot strong{color:var(--acc)}
+.chat-msg .typing{display:inline-block;width:6px;height:6px;border-radius:50%;background:var(--muted);margin:0 2px;animation:blink 1.2s infinite}
+.chat-msg .typing:nth-child(2){animation-delay:.2s}
+.chat-msg .typing:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,100%{opacity:.3}50%{opacity:1}}
+.chat-input-row{display:flex;gap:8px;padding:12px;border-top:1px solid var(--line)}
+.chat-input-row input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);padding:10px 14px;color:var(--text);font-family:var(--font);font-size:.88rem;outline:none}
+.chat-input-row input:focus{border-color:var(--acc)}
+.chat-suggest{display:flex;gap:6px;padding:0 12px 10px;overflow-x:auto;scrollbar-width:none}
+.chat-suggest::-webkit-scrollbar{display:none}
+.suggest-chip{background:var(--panel);border:1px solid var(--line);border-radius:20px;padding:6px 14px;font-size:.76rem;color:var(--muted);cursor:pointer;white-space:nowrap;transition:.2s;font-family:var(--font)}
+.suggest-chip:hover{border-color:var(--acc);color:var(--acc)}
+
+/* History */
+.history-list{display:grid;gap:8px}
+.history-item{display:flex;align-items:center;gap:12px;padding:10px 14px;background:var(--panel);border:1px solid var(--line);border-radius:var(--radius-sm);transition:.2s;cursor:pointer}
+.history-item:hover{border-color:var(--acc);background:var(--panel2)}
+.history-icon{font-size:1.3rem}
+.history-info{flex:1;min-width:0}
+.history-title{font-weight:600;font-size:.88rem}
+.history-meta{font-size:.75rem;color:var(--muted)}
+.history-time{font-size:.72rem;color:var(--muted2);font-family:var(--font-mono)}
+
+.empty{text-align:center;padding:36px 20px;color:var(--muted)}
+.toast{position:fixed;bottom:24px;right:24px;background:var(--acc);color:#fff;padding:12px 20px;border-radius:var(--radius-sm);font-size:.85rem;font-weight:600;z-index:200;transform:translateY(100px);opacity:0;transition:.3s;font-family:var(--font-display)}
+.toast.show{transform:translateY(0);opacity:1}
+footer{text-align:center;padding:28px 0;border-top:1px solid var(--line);margin-top:32px;color:var(--muted);font-size:.82rem}
+footer a{color:var(--acc);text-decoration:none}
+footer a:hover{text-decoration:underline}
+@media(max-width:640px){
+  .hero{padding:32px 0 18px}.hero h1{font-size:1.4rem}
+  .card{padding:16px}
+  .name-grid{grid-template-columns:1fr}
+  .stats-row{grid-template-columns:repeat(2,1fr)}
+}
+</style>
+</head>
+<body>
+<div class="atmos"><div class="orb o1"></div><div class="orb o2"></div><div class="orb o3"></div></div>
+<div class="particles"><span></span><span></span><span></span><span></span><span></span></div>
+<div class="app">
+  <nav><div class="inner"><div class="logo">🐾 MiMoPetName</div><div class="nav-r"><button class="lang-btn" onclick="toggleLang()">🌐</button><button class="theme-btn" onclick="toggleTheme()">🌙</button></div></div></nav>
+
+  <section class="hero">
+    <div class="hero-badge"><span class="dot"></span> <span data-i="heroBadge">Powered by Xiaomi MiMo V2.5</span></div>
+    <h1 data-i="heroTitle">The Perfect Name<br>for Your Pet</h1>
+    <p data-i="heroSub">Describe your pet's personality and appearance. MiMo suggests names with meaning, origin, and vibes — tailored to who they are.</p>
+  </section>
+
+  <div class="tabs" id="mainTabs">
+    <div class="tab active" onclick="switchTab('name')" data-i="tabName">🐾 Name</div>
+    <div class="tab" onclick="switchTab('history')" data-i="tabHistory">📖 History</div>
+    <div class="tab" onclick="switchTab('chat')" data-i="tabChat">💬 Ask MiMo</div>
+  </div>
+
+  <div id="tab-name">
+    <div class="card">
+      <h2><span>🐾</span> <span data-i="inputTitle">Describe Your Pet</span></h2>
+      <div class="form-group">
+        <label data-i="labelPet">Pet Type</label>
+        <div class="pet-pills" id="petPills">
+          <div class="pet-pill active" data-pet="cat" onclick="selectPet(this)">🐱 Cat</div>
+          <div class="pet-pill" data-pet="dog" onclick="selectPet(this)">🐶 Dog</div>
+          <div class="pet-pill" data-pet="bird" onclick="selectPet(this)">🐦 Bird</div>
+          <div class="pet-pill" data-pet="fish" onclick="selectPet(this)">🐟 Fish</div>
+          <div class="pet-pill" data-pet="rabbit" onclick="selectPet(this)">🐰 Rabbit</div>
+          <div class="pet-pill" data-pet="hamster" onclick="selectPet(this)">🐹 Hamster</div>
+          <div class="pet-pill" data-pet="turtle" onclick="selectPet(this)">🐢 Turtle</div>
+          <div class="pet-pill" data-pet="other" onclick="selectPet(this)">🌍 Other</div>
+        </div>
+      </div>
+      <div class="form-group">
+        <label data-i="labelDesc">Personality & Appearance</label>
+        <textarea id="descInput" data-ph="phDesc" placeholder="Grey fur, shy but loves cuddles, sleeps 18 hours a day, scared of cucumbers"></textarea>
+        <div class="hint" data-i="hintDesc">The more detail, the better the names</div>
+      </div>
+      <div class="form-group">
+        <label data-i="labelStyle">Name Style</label>
+        <div class="style-pills" id="stylePills">
+          <div class="style-pill active" data-style="any" onclick="selectStyle(this)">✨ Any</div>
+          <div class="style-pill" data-style="cute" onclick="selectStyle(this)">🥰 Cute</div>
+          <div class="style-pill" data-style="cool" onclick="selectStyle(this)">😎 Cool</div>
+          <div class="style-pill" data-style="funny" onclick="selectStyle(this)">😂 Funny</div>
+          <div class="style-pill" data-style="elegant" onclick="selectStyle(this)">👑 Elegant</div>
+          <div class="style-pill" data-style="mythology" onclick="selectStyle(this)">⚡ Mythology</div>
+        </div>
+      </div>
+    </div>
+    <button class="btn btn-primary btn-full" id="nameBtn" onclick="getNames()" data-i="btnName">🐾 Find Perfect Names</button>
+
+    <div id="resultArea" style="display:none;margin-top:18px">
+      <div class="stats-row" id="statsRow"></div>
+      <div class="card">
+        <h2><span>☁️</span> Name Cloud</h2>
+        <div class="cloud-wrap"><canvas id="cloudCanvas" width="600" height="280"></canvas></div>
+      </div>
+      <div class="name-grid" id="nameGrid"></div>
+      <div style="display:flex;gap:10px;margin-top:14px;flex-wrap:wrap">
+        <button class="btn btn-secondary" onclick="copyAllNames()">📋 Copy All</button>
+        <button class="btn btn-secondary" onclick="saveHistory()">💾 Save</button>
+        <button class="btn btn-secondary" onclick="getNames()">🔄 More Names</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="tab-history" style="display:none"><div id="historyContent"></div></div>
+
+  <div id="tab-chat" style="display:none">
+    <div class="chat-box">
+      <div class="chat-messages" id="chatMessages">
+        <div class="chat-msg bot"><strong>MiMo Pet:</strong> <span data-i="chatWelcome">I'm your pet naming companion. Tell me about your pet and I'll help find the perfect name. Or ask me about name meanings, origins, or naming tips.</span></div>
+      </div>
+      <div class="chat-suggest">
+        <div class="suggest-chip" onclick="sendSuggest(this)" data-i="sug1">Names meaning "gentle warrior"</div>
+        <div class="suggest-chip" onclick="sendSuggest(this)" data-i="sug2">Japanese cat names</div>
+        <div class="suggest-chip" onclick="sendSuggest(this)" data-i="sug3">Funny dog names</div>
+        <div class="suggest-chip" onclick="sendSuggest(this)" data-i="sug4">Names from Greek mythology</div>
+      </div>
+      <div class="chat-input-row">
+        <input type="text" id="chatInput" data-ph="phChat" placeholder="Ask about pet names..." onkeydown="if(event.key==='Enter')sendChat()">
+        <button class="btn btn-primary btn-sm" onclick="sendChat()">→</button>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>Built with 🧠 <a href="https://github.com/XiaomiMiMo" target="_blank">Xiaomi MiMo V2.5</a> · Submitted to <a href="https://100t.xiaomimimo.com/" target="_blank">MiMo 100T</a></p>
+    <p style="margin-top:6px" data-i="footerNote">Your pet's name stays in your browser. No tracking.</p>
+  </footer>
+</div>
+<div class="toast" id="toast"></div>
+<script>
+const AI='https://text.pollinations.ai/openai';const MODEL='openai';
+let lang=localStorage.getItem('mimo-lang')||'en';let theme=localStorage.getItem('mimo-theme')||'dark';
+let selectedPet='cat';let selectedStyle='any';let lastNames=null;
+let history=JSON.parse(localStorage.getItem('mimo-petname-history')||'[]');let chatHistory=[];
+
+const I={en:{heroBadge:'Powered by Xiaomi MiMo V2.5',heroTitle:'The Perfect Name<br>for Your Pet',heroSub:"Describe your pet's personality and appearance. MiMo suggests names with meaning, origin, and vibes — tailored to who they are.",tabName:'🐾 Name',tabHistory:'📖 History',tabChat:'💬 Ask MiMo',inputTitle:'Describe Your Pet',labelPet:'Pet Type',labelDesc:'Personality & Appearance',phDesc:'Grey fur, shy but loves cuddles, sleeps 18 hours a day, scared of cucumbers',hintDesc:'The more detail, the better the names',labelStyle:'Name Style',btnName:'🐾 Find Perfect Names',chatWelcome:"I'm your pet naming companion. Tell me about your pet and I'll help find the perfect name.",phChat:'Ask about pet names...',sug1:'Names meaning "gentle warrior"',sug2:'Japanese cat names',sug3:'Funny dog names',sug4:'Names from Greek mythology',footerNote:"Your pet's name stays in your browser. No tracking.",finding:'Finding perfect names...',errorName:'Could not generate names. Try again.',toastSaved:'💾 Saved!',toastCopied:'📋 Copied!',emptyHistory:'No history yet',emptyHistorySub:'Generate your first pet names to start a collection.',noDesc:'Describe your pet first',statNames:'Names',statOrigins:'Origins',statStyles:'Styles',statPet:'Pet'},
+id:{heroBadge:'Didukung Xiaomi MiMo V2.5',heroTitle:'Nama Sempurna<br>untuk Pet-mu',heroSub:'Deskripsiin personality dan penampilan pet. MiMo suggest nama dengan arti, asal, dan vibes — sesuai siapa mereka.',tabName:'🐾 Nama',tabHistory:'📖 Riwayat',tabChat:'💬 Tanya MiMo',inputTitle:'Deskripsiin Pet-mu',labelPet:'Jenis Pet',labelDesc:'Personality & Penampilan',phDesc:'Bulu abu-abu, pemalu tapi suka pelukan, tidur 18 jam sehari, takut timun',hintDesc:'Makin detail, makin bagus nama-nya',labelStyle:'Gaya Nama',btnName:'🐾 Cari Nama Sempurna',chatWelcome:'Aku teman naming pet-mu. Ceritakan tentang pet dan aku bantu cari nama yang pas.',phChat:'Tanya tentang nama pet...',sug1:'Nama yang artinya "pejuang lembut"',sug2:'Nama kucing Jepang',sug3:'Nama anjing lucu',sug4:'Nama dari mitologi Yunani',footerNote:'Nama pet tetap di browser. Tanpa tracking.',finding:'Mencari nama sempurna...',errorName:'Gagal generate. Coba lagi.',toastSaved:'💾 Tersimpan!',toastCopied:'📋 Tersalin!',emptyHistory:'Belum ada riwayat',emptyHistorySub:'Generate nama pertama untuk mulai koleksi.',noDesc:'Deskripsiin pet dulu',statNames:'Nama',statOrigins:'Asal',statStyles:'Gaya',statPet:'Pet'}};
+function t(k){return I[lang][k]||I.en[k]||k;}
+function applyTheme(){document.documentElement.dataset.theme=theme;localStorage.setItem('mimo-theme',theme);}
+function toggleTheme(){theme=theme==='dark'?'light':'dark';applyTheme();}
+function applyLang(){document.querySelectorAll('[data-i]').forEach(el=>{el.innerHTML=t(el.dataset.i);});document.querySelectorAll('[data-ph]').forEach(el=>{el.placeholder=t(el.dataset.ph);});document.documentElement.lang=lang;localStorage.setItem('mimo-lang',lang);}
+function toggleLang(){lang=lang==='en'?'id':'en';applyLang();}
+function switchTab(n){['name','history','chat'].forEach(t=>{document.getElementById('tab-'+t).style.display=t===n?'block':'none';});document.querySelectorAll('#mainTabs .tab').forEach((tab,i)=>{tab.classList.toggle('active',['name','history','chat'][i]===n);});if(n==='history')renderHistory();}
+function selectPet(el){selectedPet=el.dataset.pet;document.querySelectorAll('.pet-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');}
+function selectStyle(el){selectedStyle=el.dataset.style;document.querySelectorAll('.style-pill').forEach(p=>p.classList.remove('active'));el.classList.add('active');}
+
+async function getNames(){
+  const desc=document.getElementById('descInput').value.trim();if(!desc){toast(t('noDesc'));return;}
+  const btn=document.getElementById('nameBtn');btn.disabled=true;btn.innerHTML=`<span class="typing"></span><span class="typing"></span><span class="typing"></span> ${t('finding')}`;
+  document.getElementById('resultArea').style.display='none';
+  const styleHint=selectedStyle==='any'?'any style':selectedStyle;
+
+  const prompt=`You are MiMoPetName, an expert pet naming advisor. The user has a ${selectedPet} with these traits: "${desc}".
+Style preference: ${styleHint}
+
+Suggest 10 names. Return a JSON object:
+{
+  "names": [
+    {
+      "name": "Name",
+      "origin": "Language/culture of origin",
+      "meaning": "What the name means and why it fits this pet",
+      "vibes": ["vibe1", "vibe2", "vibe3"]
+    }
+  ],
+  "summary": "1-line overall naming theme"
+}
+
+Rules:
+- Names should be SPECIFIC to the pet's described traits, not generic
+- Mix origins: Japanese, Greek, Norse, Arabic, Indonesian, Celtic, Latin, etc.
+- Vibes: 2-3 per name (e.g. "cozy", "mysterious", "playful", "regal", "mischievous")
+- Meaning should connect the name to the pet's personality or appearance
+- ${selectedStyle==='cute'?'Prefer soft, sweet, adorable names':''}
+- ${selectedStyle==='cool'?'Prefer strong, sleek, badass names':''}
+- ${selectedStyle==='funny'?'Prefer punny, ironic, humorous names':''}
+- ${selectedStyle==='elegant'?'Prefer refined, noble, sophisticated names':''}
+- ${selectedStyle==='mythology'?'Prefer names from myths and legends':''}
+- ${lang==='id'?'Write meanings in Indonesian, keep names in original language':'All in English'}
+Return ONLY the JSON.`;
+
+  try{
+    const r=await fetch(AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:MODEL,messages:[{role:'system',content:prompt},{role:'user',content:'Name my pet.'}],stream:false}),signal:AbortSignal.timeout(60000)});
+    const d=await r.json();let raw=d.choices?.[0]?.message?.content||'';raw=raw.replace(/```json?\s*/g,'').replace(/```/g,'').trim();
+    lastNames=JSON.parse(raw);renderNames();
+  }catch(e){
+    try{const r2=await fetch(AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:MODEL,messages:[{role:'system',content:prompt},{role:'user',content:'Name my pet.'}],stream:false}),signal:AbortSignal.timeout(60000)});
+    const d2=await r2.json();let raw2=d2.choices?.[0]?.message?.content||'';raw2=raw2.replace(/```json?\s*/g,'').replace(/```/g,'').trim();lastNames=JSON.parse(raw2);renderNames();}catch(e2){toast(t('errorName'));}
+  }finally{btn.disabled=false;btn.innerHTML=t('btnName');}
+}
+
+function renderNames(){
+  if(!lastNames)return;
+  const names=lastNames.names||[];
+  const origins=[...new Set(names.map(n=>n.origin))];
+  const styles=[...new Set(names.flatMap(n=>n.vibes||[]))];
+
+  document.getElementById('statsRow').innerHTML=[
+    {val:names.length,lbl:t('statNames')},{val:origins.length,lbl:t('statOrigins')},
+    {val:styles.length,lbl:t('statStyles')},{val:selectedPet,lbl:t('statPet')}
+  ].map(s=>`<div class="stat-pill"><div class="val">${s.val}</div><div class="lbl">${s.lbl}</div></div>`).join('');
+
+  document.getElementById('nameGrid').innerHTML=names.map((n,i)=>`
+    <div class="name-card" onclick="copyName('${esc(n.name)}')">
+      <div class="copy-hint">click to copy</div>
+      <div class="name-title">${esc(n.name)}</div>
+      <div class="name-origin">${esc(n.origin||'')}</div>
+      <div class="name-meaning">${esc(n.meaning||'')}</div>
+      <div class="name-vibes">${(n.vibes||[]).map(v=>`<span class="vibe-tag">${esc(v)}</span>`).join('')}</div>
+    </div>`).join('');
+
+  drawNameCloud(names);
+  document.getElementById('resultArea').style.display='block';
+  document.getElementById('resultArea').scrollIntoView({behavior:'smooth',block:'start'});
+}
+
+function drawNameCloud(names){
+  const canvas=document.getElementById('cloudCanvas');const ctx=canvas.getContext('2d');
+  ctx.clearRect(0,0,600,280);const dk=theme==='dark';
+  const colors=dk?['#f472b6','#a78bfa','#67e8f9','#bef264','#fbbf24','#7dd3fc','#fca5a5','#c4b5fd','#6ee7b7','#fde68a']:
+    ['#d946a8','#7c3aed','#06b6d4','#65a30d','#d97706','#0284c7','#e11d48','#6d28d9','#059669','#b45309'];
+  const sizes=[28,24,22,20,18,17,16,15,14,13];
+  const positions=[[50,60],[250,40],[450,70],[100,140],[300,130],[480,150],[60,220],[220,210],[380,230],[500,100]];
+  names.forEach((n,i)=>{
+    if(i>=10)return;const[x,y]=positions[i];const s=sizes[i];const c=colors[i%colors.length];
+    ctx.font=`bold ${s}px Sora`;ctx.fillStyle=c;ctx.textAlign='center';ctx.textBaseline='middle';
+    ctx.fillText(n.name,x,y);
+  });
+}
+
+function copyName(name){navigator.clipboard.writeText(name).then(()=>toast(`📋 ${name}`));}
+function copyAllNames(){if(!lastNames)return;const all=lastNames.names?.map(n=>n.name).join(', ')||'';navigator.clipboard.writeText(all).then(()=>toast(t('toastCopied')));}
+
+function saveHistory(){
+  if(!lastNames)return;const desc=document.getElementById('descInput').value.trim();
+  history.unshift({desc,lastNames,pet:selectedPet,style:selectedStyle,date:new Date().toISOString()});
+  if(history.length>20)history=history.slice(0,20);localStorage.setItem('mimo-petname-history',JSON.stringify(history));toast(t('toastSaved'));
+}
+function renderHistory(){
+  const el=document.getElementById('historyContent');
+  if(!history.length){el.innerHTML=`<div class="empty"><div class="icon">📖</div><p>${t('emptyHistory')}</p><p style="margin-top:8px;font-size:.85rem">${t('emptyHistorySub')}</p></div>`;return;}
+  let html='<div class="history-list">';
+  history.forEach((h,i)=>{
+    const preview=h.lastNames?.names?.slice(0,3).map(n=>n.name).join(', ')||'...';
+    html+=`<div class="history-item" onclick="loadHistory(${i})"><div class="history-icon">🐾</div><div class="history-info"><div class="history-title">${esc(preview)}</div><div class="history-meta">${h.pet} · ${h.style}</div></div><div class="history-time">${formatDate(h.date)}</div></div>`;
+  });html+='</div>';el.innerHTML=html;
+}
+function loadHistory(i){lastNames=history[i].lastNames;document.getElementById('descInput').value=history[i].desc;selectedPet=history[i].pet||'cat';selectedStyle=history[i].style||'any';switchTab('name');renderNames();}
+
+async function sendChat(){const input=document.getElementById('chatInput');const msg=input.value.trim();if(!msg)return;input.value='';appendMsg('user',msg);chatHistory.push({role:'user',content:msg});
+  const petCtx=lastNames?`User's pet: ${selectedPet}. Recent names: ${lastNames.names?.slice(0,5).map(n=>n.name).join(', ')}`:'';
+  const sysPrompt=`You are MiMoPetName, a warm and knowledgeable pet naming advisor. You know name origins, meanings, cultural significance, and naming tips. ${petCtx}. Keep concise (1-2 paragraphs). ${lang==='id'?'Respond in Indonesian':'Respond in English'}.`;
+  appendMsg('bot','<span class="typing"></span><span class="typing"></span><span class="typing"></span>',true);
+  try{const r=await fetch(AI,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({model:MODEL,messages:[{role:'system',content:sysPrompt},...chatHistory.slice(-8)],stream:false}),signal:AbortSignal.timeout(60000)});const d=await r.json();const reply=d.choices?.[0]?.message?.content||t('errorName');chatHistory.push({role:'assistant',content:reply});document.getElementById('chatMessages').lastElementChild.querySelector('.chat-msg').innerHTML=`<strong>MiMo Pet:</strong> ${fmtReply(reply)}`;}catch(e){document.getElementById('chatMessages').lastElementChild.querySelector('.chat-msg').innerHTML=`<strong>MiMo Pet:</strong> ${t('errorName')}`;}}
+function sendSuggest(el){document.getElementById('chatInput').value=el.textContent;sendChat();}
+function appendMsg(role,html){const c=document.getElementById('chatMessages');const d=document.createElement('div');d.style.maxWidth='85%';d.style.alignSelf=role==='user'?'flex-end':'flex-start';d.innerHTML=`<div class="chat-msg ${role}">${role==='user'?esc(html):html}</div>`;c.appendChild(d);c.scrollTop=c.scrollHeight;return d;}
+function fmtReply(t){return esc(t).replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>').replace(/`(.*?)`/g,'<code>$1</code>').replace(/\n/g,'<br>');}
+function esc(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function formatDate(iso){return new Date(iso).toLocaleDateString(lang==='id'?'id-ID':'en-US',{month:'short',day:'numeric',hour:'2-digit',minute:'2-digit'});}
+function toast(m){const e=document.getElementById('toast');e.textContent=m;e.classList.add('show');setTimeout(()=>e.classList.remove('show'),2500);}
+applyTheme();applyLang();
+</script>
+</body>
+</html>
